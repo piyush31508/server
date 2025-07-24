@@ -27,35 +27,36 @@ public class security {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         return http
                 .cors(Customizer.withDefaults())
-                .csrf(custom -> custom.disable())
-                .authorizeHttpRequests(request ->
-                        request
-                                .requestMatchers("/","/api/user/**", "/api/data").permitAll()
-                                .anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/api/user/**", "/api/data").permitAll()
+                        .anyRequest().authenticated()
+                )
+                // Uncomment below only if you're using Basic Auth for testing
+                //.httpBasic(Customizer.withDefaults())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("https://panthera-pi.vercel.app/"));
+        config.setAllowedOrigins(Arrays.asList("https://panthera-pi.vercel.app")); // ✅ Fixed: removed trailing slash
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        config.setAllowCredentials(true); // Optional if using cookies or HTTP Basic Auth
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // applies to all routes
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 
     @Bean
-    public AuthenticationProvider auth(){
+    public AuthenticationProvider auth() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
         provider.setUserDetailsService(userDetailsService);
